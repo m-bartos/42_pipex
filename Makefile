@@ -6,7 +6,7 @@
 #    By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/21 10:59:06 by mbartos           #+#    #+#              #
-#    Updated: 2023/11/24 10:52:55 by mbartos          ###   ########.fr        #
+#    Updated: 2023/11/24 17:24:06 by mbartos          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,7 +32,7 @@ INC =	-I ./libft
 
 #sources
 SRC_PATH =	src/
-SRC = 	parse.c
+SRC = 	pipex.c
 SRCS =	$(addprefix $(SRC_PATH), $(SRC))
 
 #objects
@@ -57,7 +57,7 @@ $(LIBFT):
 
 $(NAME): $(OBJS)
 	@echo "$(BOLD)$(BCYAN)[ Compiling... ]"
-	@$(CC) $(CFLAGS) -lreadline -o $(NAME) $(OBJS) $(LIBFT) $(INC)
+	@$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LIBFT) $(INC)
 	@echo "$(BOLD)$(GREEN)[ Program ready! ]"
 
 clean:
