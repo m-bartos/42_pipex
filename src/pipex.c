@@ -6,7 +6,7 @@
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/23 17:22:30 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/25 19:41:36 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/11/25 20:33:50 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,16 +90,16 @@ int	main(int argc, char **argv, char **envp)
 		"Use this format: file1 cmd1 cmd2 .. cmdn file2\n", 2);
 		return (1);
 	}
-	if (access(argv[1], F_OK | R_OK) < 0)
-	{
-		ft_putstr_fd("Problem reading first file\n", 2);
-		return (1);
-	}
+	// if (access(argv[1], F_OK | R_OK) < 0)
+	// {
+	// 	perror("First file");
+	// 	return (1);
+	// }
 	fd_in_file = open(argv[1], O_RDONLY);
 	if (fd_in_file == -1)
 	{
-		ft_putstr_fd("Problem opening first file\n", 2);
-		return (1);
+		perror("Problem opening first file");
+		return (0);
 	}
 	fd_out_file = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	if (fd_out_file == -1)
@@ -137,132 +137,69 @@ int	main(int argc, char **argv, char **envp)
 		i++;
 	if (cmd_paths[0][i] == NULL)
 	{
-		ft_putstr_fd("Wrong command1\n", 2);
-		return (1);
+		ft_putstr_fd("Command not found\n", 2);
 	}
 	j = 0;
 	while (cmd_paths[1][j] && access(cmd_paths[1][j], X_OK) != 0)
 		j++;
 	if (cmd_paths[1][j] == NULL)
 	{
-		ft_putstr_fd("Wrong command2\n", 2);
-		return (1);
+		ft_putstr_fd("Command not found\n", 2);
 	}
 
-/* This is not working: */
+/* Forking, piping: */
 	if (pipe(p_fd) == -1)
 	{
-		perror("Error creating pipe\n");
-		exit(1);
+		perror("Error creating pipe");
+		return (1);
 	}
 	p_id = fork();
 	if (p_id == -1)
 	{
-		perror("Error forking\n");
-		exit(1);
+		perror("Error forking");
+		return (1);
 	}
 	if (p_id == 0)
 	{
-		int	p_id2;
-		int	p_fd2[2];
-		if (pipe(p_fd2) == -1)
-		{
-			perror("Error creating pipe\n");
-			return (1);
-		}
-		p_id2 = fork();
-		if (p_id2 == -1)
-		{
-			perror("Error forking\n");
-			return (1);
-		}
-		if (p_id2 == 0)
-		{
-			close(p_fd[0]);
-			close(p_fd[1]);
-			close(p_fd2[0]);
-			close(fd_out_file);
-			dup2(fd_in_file, STDIN_FILENO);
-			close(fd_in_file);
-			dup2(p_fd2[1], STDOUT_FILENO);
-			close(p_fd2[1]);
-			execve(cmd_paths[0][i], cmd[0], NULL);
-		}
-		else
-		{
-			wait(NULL);
-			close(p_fd[0]);
-			close(p_fd[1]);
-			close(p_fd2[1]);
-			close(fd_in_file);
-			dup2(p_fd2[0], STDIN_FILENO);
-			close(p_fd2[0]);
-			dup2(fd_out_file, STDOUT_FILENO);
-			close(fd_out_file);
-			execve(cmd_paths[1][j], cmd[1], NULL);
-		}
-	}
-	else
-	{
-		wait(NULL);
-		close(fd_in_file);
-		close(fd_out_file);
 		close(p_fd[0]);
+		close(fd_out_file);
+		dup2(fd_in_file, STDIN_FILENO);
+		close(fd_in_file);
+		dup2(p_fd[1], STDOUT_FILENO);
 		close(p_fd[1]);
-		/*freeing*/
-		free_array(paths);
-		i = 0;
-		while (i < num_of_cmds)
-		{
-			free_array(*(cmd + i));
-			free_array(*(cmd_paths + i));
-			i++;
-		}
-		free(cmd);
-		free(cmd_paths);
+		execve(cmd_paths[0][i], cmd[0], envp);
 	}
-/* This is not working...*/
-
-	// /* testing */
-	// int	k;
-	// i = 0;
-	// printf("Printing all argv: \n");
-	// while(i < argc)
-	// {
-	// 	printf("%s\n", argv[i]);
-	// 	i++;
-	// }
-	// printf("---------\n");
-	// i = 0;
-	// while(cmd_paths[i])
-	// {
-	// 	k = 0;
-	// 	while (cmd_paths[i][k])
-	// 	{
-	// 		printf("%s\n", cmd_paths[i][k]);
-	// 		k++;
-	// 	}
-	// 	printf("---------\n");
-	// 	i++;
-	// }
-
-	// int aces;
-	// aces = -1;
-	// i = 0;
-	// while (cmd_paths[0][i] && aces != 0)
-	// {
-	// 	aces = access(cmd_paths[0][i], X_OK);
-	// 	if (aces != 0)
-	// 		i++;
-	// }
-	// printf("%s\n", cmd_paths[0][i]);
-	// k = 0;
-	// while (cmd[0][k])
-	// {
-	// 	printf("%s\n", cmd[0][k]);
-	// 	k++;
-	// }
-	// printf("---------\n");
-	// execve(cmd_paths[0][i], cmd[0], NULL);
-	// perror("execve ls");
+	p_id = fork();
+	if (p_id == -1)
+	{
+		perror("Error forking");
+		return (1);
+	}
+	if (p_id == 0)
+	{
+		close(p_fd[1]);
+		close(fd_in_file);
+		dup2(p_fd[0], STDIN_FILENO);
+		close(p_fd[0]);
+		dup2(fd_out_file, STDOUT_FILENO);
+		close(fd_out_file);
+		execve(cmd_paths[1][j], cmd[1], envp);
+	}
+	close(fd_in_file);
+	close(fd_out_file);
+	close(p_fd[0]);
+	close(p_fd[1]);
+	wait(NULL);
+	/*freeing*/
+	free_array(paths);
+	i = 0;
+	while (i < num_of_cmds)
+	{
+		free_array(*(cmd + i));
+		free_array(*(cmd_paths + i));
+		i++;
+	}
+	free(cmd);
+	free(cmd_paths);
+	return (0);
 }
