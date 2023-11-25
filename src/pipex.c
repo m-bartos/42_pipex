@@ -6,7 +6,7 @@
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/23 17:22:30 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/24 19:55:55 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/11/25 19:41:36 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,9 +181,9 @@ int	main(int argc, char **argv, char **envp)
 			close(p_fd[0]);
 			close(p_fd[1]);
 			close(p_fd2[0]);
+			close(fd_out_file);
 			dup2(fd_in_file, STDIN_FILENO);
 			close(fd_in_file);
-			close(fd_out_file);
 			dup2(p_fd2[1], STDOUT_FILENO);
 			close(p_fd2[1]);
 			execve(cmd_paths[0][i], cmd[0], NULL);
@@ -194,11 +194,11 @@ int	main(int argc, char **argv, char **envp)
 			close(p_fd[0]);
 			close(p_fd[1]);
 			close(p_fd2[1]);
-			dup2(p_fd2[0], STDIN_FILENO);
-			dup2(fd_out_file, STDOUT_FILENO);
 			close(fd_in_file);
-			close(fd_out_file);
+			dup2(p_fd2[0], STDIN_FILENO);
 			close(p_fd2[0]);
+			dup2(fd_out_file, STDOUT_FILENO);
+			close(fd_out_file);
 			execve(cmd_paths[1][j], cmd[1], NULL);
 		}
 	}
