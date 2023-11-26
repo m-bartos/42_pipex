@@ -6,7 +6,7 @@
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/23 17:22:30 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/25 20:33:50 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/11/26 20:51:56 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,38 @@ int	free_array(char **array)
 	return (1);
 }
 
+int executing(char *cmd_path, char **cmd, int fd_in, int fd_out, int fd_inclose, int fd_outclose)
+{
+	int p_id;
+	
+	p_id = fork();
+	if (p_id == -1)
+	{
+		perror("Error forking");
+		return (1);
+	}
+	if (p_id == 0)
+	{
+		close(fd_inclose);
+		close(fd_outclose);
+		dup2(fd_in, STDIN_FILENO);
+		close(fd_in);
+		dup2(fd_out, STDOUT_FILENO);
+		close(fd_out);
+		execve(cmd_path, cmd, NULL);
+		return (1);
+	}
+	//else
+	// {
+	// 	close(fd_in);
+	// 	close(fd_out);
+	// 	close(fd_inclose);
+	// 	close(fd_outclose);
+	// }
+	//wait(NULL);
+	return (0);
+}
+
 int	main(int argc, char **argv, char **envp)
 {
 	char	**paths;
@@ -81,7 +113,6 @@ int	main(int argc, char **argv, char **envp)
 	int		num_of_cmds;
 	int		fd_in_file;
 	int		fd_out_file;
-	int		p_id;
 	int		p_fd[2];
 
 	if (argc < 5)
@@ -146,50 +177,18 @@ int	main(int argc, char **argv, char **envp)
 	{
 		ft_putstr_fd("Command not found\n", 2);
 	}
-
 /* Forking, piping: */
 	if (pipe(p_fd) == -1)
 	{
 		perror("Error creating pipe");
 		return (1);
 	}
-	p_id = fork();
-	if (p_id == -1)
-	{
-		perror("Error forking");
-		return (1);
-	}
-	if (p_id == 0)
-	{
-		close(p_fd[0]);
-		close(fd_out_file);
-		dup2(fd_in_file, STDIN_FILENO);
-		close(fd_in_file);
-		dup2(p_fd[1], STDOUT_FILENO);
-		close(p_fd[1]);
-		execve(cmd_paths[0][i], cmd[0], envp);
-	}
-	p_id = fork();
-	if (p_id == -1)
-	{
-		perror("Error forking");
-		return (1);
-	}
-	if (p_id == 0)
-	{
-		close(p_fd[1]);
-		close(fd_in_file);
-		dup2(p_fd[0], STDIN_FILENO);
-		close(p_fd[0]);
-		dup2(fd_out_file, STDOUT_FILENO);
-		close(fd_out_file);
-		execve(cmd_paths[1][j], cmd[1], envp);
-	}
-	close(fd_in_file);
-	close(fd_out_file);
-	close(p_fd[0]);
-	close(p_fd[1]);
-	wait(NULL);
+	executing(cmd_paths[0][i], cmd[0], fd_in_file, p_fd[1], p_fd[0], fd_out_file);
+	executing(cmd_paths[1][j], cmd[1], p_fd[0], fd_out_file, fd_in_file, p_fd[1]);
+	// close(fd_in_file);
+	// close(fd_out_file);
+	// close(p_fd[0]);
+	// close(p_fd[1]);
 	/*freeing*/
 	free_array(paths);
 	i = 0;
