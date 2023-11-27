@@ -6,7 +6,7 @@
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/27 15:02:15 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/27 15:56:28 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/11/27 16:29:40 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,14 +95,14 @@ int	pipe_fork(char *argv, char **env)
 	}
 	if (p_id == 0)
 	{
-		close(p_fd[1]);
-		dup2(p_fd[0], STDIN_FILENO);
+		close(p_fd[0]);
+		dup2(p_fd[1], STDOUT_FILENO);
 		execute(argv, env);
 	}
 	else
 	{
-		close(p_fd[0]);
-		dup2(p_fd[1], STDOUT_FILENO);
+		close(p_fd[1]);
+		dup2(p_fd[0], STDIN_FILENO);
 	}
 	return (0);
 }
@@ -122,14 +122,13 @@ int	main(int argc, char **argv, char **env)
 
 
 	//opening the input and output file
-	fd_in = open(argv[1], O_RDONLY);
+	fd_in = open(argv[1], O_RDONLY, 0777);
 	fd_out = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	if(fd_in < 0 || fd_out < 0)
 		perror("File error");
 
 	//first iteration - STDIN = fd_in
 	dup2(fd_in, STDIN_FILENO);
-	
 	//pipe_fork for all the cmnds
 	i = 2;
 	while (i < (argc - 2))
