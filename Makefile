@@ -6,7 +6,7 @@
 #    By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/21 10:59:06 by mbartos           #+#    #+#              #
-#    Updated: 2023/11/24 17:24:06 by mbartos          ###   ########.fr        #
+#    Updated: 2023/11/27 15:52:04 by mbartos          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ RED =	\033[31m
 BCYAN =	\033[96m
 
 #name
-NAME = 		pipex
+NAME = 		pipex_new
 
 #compiler
 CC =		cc
@@ -32,7 +32,7 @@ INC =	-I ./libft
 
 #sources
 SRC_PATH =	src/
-SRC = 	pipex.c
+SRC = 	pipex_new.c
 SRCS =	$(addprefix $(SRC_PATH), $(SRC))
 
 #objects
