@@ -6,7 +6,7 @@
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/27 15:02:15 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/27 16:29:40 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/11/28 11:44:08 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int	free_array(char **array)
 
 char	**get_cmd(char	*argv)
 {
-	return(ft_split(argv, ' '));
+	return (ft_split(argv, ' '));
 }
 
 char	*get_path(char *argv, char **env)
@@ -50,40 +50,43 @@ char	*get_path(char *argv, char **env)
 	paths = ft_split(new_path, ':');
 	free(new_path);
 	i = 0;
-	while (paths[i])
+	while (paths[i] != NULL)
 	{
 		new_path = ft_strjoin(paths[i], "/");
 		free(paths[i]);
-		paths[i] = ft_strjoin(new_path, cmd[0]); //need array of commands as input to execve
+		paths[i] = ft_strjoin(new_path, cmd[0]);
 		free(new_path);
 		if(access(paths[i] , X_OK) == 0)
-			break;
+			break ;
 		i++;
 	}
-	// Cmd not found
 	if (paths[i] == NULL)
-		return (NULL);
-	path = ft_strdup(paths[i]);
-	free_array(paths);
-	return (path);
-	// need to free path in another function
+		path = NULL;
+	else
+		path = ft_strdup(paths[i]);
+	return (free_array(paths), path);
 }
 
 int	execute(char *argv, char **env)
 {
-	char *path;
-	char **cmd;
-	
+	char	*path;
+	char	**cmd;
+
 	path = get_path(argv, env);
 	cmd = get_cmd(argv);
+	if (path == NULL)
+	{
+		ft_putstr_fd("Command not found\n", 2);
+		exit(1);
+	}
 	execve(path, cmd, env);
-	return (1); // need to handle errors from execve
+	exit(1);
 }
 
 int	pipe_fork(char *argv, char **env)
 {
-	int p_fd[2];
-	int p_id;
+	int	p_fd[2];
+	int	p_id;
 
 	if (pipe(p_fd) == -1)
 		perror("Pipe error");
@@ -107,36 +110,31 @@ int	pipe_fork(char *argv, char **env)
 	return (0);
 }
 
-
 int	main(int argc, char **argv, char **env)
 {
 	int	i;
-	int fd_in;
-	int fd_out;
+	int	fd_in;
+	int	fd_out;
 
-	//error handling when !(argc >= 5)
-
-	//argv[1] = file_in
-	//argv [2 -- (argc-2)] =cmnds
-	//argv[argc - 1] = file_out
-
-
-	//opening the input and output file
+	if(argc < 5)
+	{
+		ft_putstr_fd("Format should be: ./pipex file1 cmd1 cmd2 ... cmdn file2", 1);
+		return (1);
+	}
 	fd_in = open(argv[1], O_RDONLY, 0777);
 	fd_out = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	if(fd_in < 0 || fd_out < 0)
+	{
 		perror("File error");
-
-	//first iteration - STDIN = fd_in
+		exit (0);
+	}
 	dup2(fd_in, STDIN_FILENO);
-	//pipe_fork for all the cmnds
 	i = 2;
 	while (i < (argc - 2))
 	{
 		pipe_fork(argv[i], env);
 		i++;
 	}
-	//last iteration - STDOUT = fd_out
 	dup2(fd_out, STDOUT_FILENO);
 	execute(argv[i], env);
 }
