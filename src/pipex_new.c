@@ -6,7 +6,7 @@
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/27 15:02:15 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/29 13:45:12 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/11/29 14:04:14 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ int	execute(char *argv, char **env)
 	char	**cmd;
 
 	path = get_path(argv, env);
-	cmd = get_cmd(argv);
+	cmd = ft_split(argv, ' ');
 	if (path == NULL)
 	{
 		ft_putstr_fd("Command not found\n", 2);
@@ -51,54 +51,6 @@ void	pipe_fork(char *argv, char **env)
 		dup2(p_fd[0], STDIN_FILENO);
 	}
 }
-
-// void	here_doc_put_in(char *argv, int *p_fd)
-// {
-// 	char	*ret;
-
-// 	ft_putchar_fd('B', 1);
-// 	close(p_fd[0]);
-// 	ft_putchar_fd('C', 1);
-// 	while (1)
-// 	{
-// 		ft_putchar_fd('D', 1);
-// 		ret = get_next_line(0);
-// 		ft_putstr_fd(ret, 1);
-// 		ft_putchar_fd('E', 1);
-// 		if (ft_strncmp(ret, argv, ft_strlen(argv)) == 0)
-// 		{
-// 			free(ret);
-// 			close(p_fd[1]);
-// 			return ;
-// 		}
-// 		ft_putstr_fd(ret, p_fd[1]);
-// 		free(ret);
-// 	}
-// }
-
-// void	here_doc(char *argv)
-// {
-// 	int		p_fd[2];
-// 	pid_t	pid;
-
-// 	if (pipe(p_fd) == -1)
-// 		exit(0);
-// 	pid = fork();
-// 	if (pid == -1)
-// 		exit(0);
-// 	if (pid == 0)
-// 	{
-// 		ft_putchar_fd('b', 1);
-// 		here_doc_put_in(argv, p_fd);
-// 	}
-// 	else
-// 	{
-// 		close(p_fd[1]);
-// 		dup2(p_fd[0], STDIN_FILENO);
-// 		wait(NULL);
-// 		ft_putchar_fd('c', 1);
-// 	}
-// }
 
 /* COPIED CODE FROM OREZEK FOR TESTING*/
 int	ft_pip_strncmp(const char *s1, const char *s2, size_t size)
@@ -173,10 +125,22 @@ void	ft_read_heredoc(char *limiter)
 }
 /* COPIED CODE FROM OREZEK FOR TESTING*/
 
-void error_message(void)
+int	open_files(int argc, char **argv, int *fd_in, int *fd_out)
 {
-	ft_putstr_fd("Error format: ./pipex file1 cmd1 .. cmdn file2\n", 2);
-	ft_putstr_fd("./pipex here_doc LIMITER cmd1 .. cmdn file2\n", 2);
+	if (ft_strncmp(argv[1], "here_doc", ft_strlen("here_doc")) == 0 \
+		&& ft_strlen("here_doc") == ft_strlen(argv[1]) && argc > 5)
+	{
+		ft_read_heredoc(argv[2]);
+		*fd_in = open("here_doc", O_RDONLY, 0444);
+		*fd_out = open(argv[argc - 1], O_WRONLY | O_CREAT | O_APPEND, 0666);
+		return (3);
+	}
+	else
+	{
+		*fd_in = open(argv[1], O_RDONLY, 0444);
+		*fd_out = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+		return (2);
+	}
 }
 
 int	main(int argc, char **argv, char **env)
@@ -186,23 +150,17 @@ int	main(int argc, char **argv, char **env)
 	int	fd_out;
 
 	if (argc < 5)
-		return (error_message(), 1);
-	if (ft_strncmp(argv[1], "here_doc", ft_strlen("here_doc")) == 0 \
-		&& ft_strlen("here_doc") == ft_strlen(argv[1]) && argc > 5)
 	{
-		i = 3;
-		ft_read_heredoc(argv[2]);
-		fd_in = open("here_doc", O_RDONLY, 0444);
-		fd_out = open(argv[argc - 1], O_WRONLY | O_CREAT | O_APPEND, 0666);
+		ft_putstr_fd("Error format: ./pipex file1 cmd1 .. cmdn file2\n", 2);
+		ft_putstr_fd("./pipex here_doc LIMITER cmd1 .. cmdn file2\n", 2);
+		return (1);
 	}
-	else
-	{
-		i = 2;
-		fd_in = open(argv[1], O_RDONLY, 0444);
-		fd_out = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	}
+	i = open_files(argc, argv, &fd_in, &fd_out);
 	if (fd_in < 0 || fd_out < 0)
-		return (perror("File error"), 1);
+	{
+		perror("File error");
+		return (1);
+	}
 	dup2(fd_in, STDIN_FILENO);
 	while (i < (argc - 2))
 		pipe_fork(argv[i++], env);

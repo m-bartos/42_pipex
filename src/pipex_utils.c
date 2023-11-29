@@ -6,7 +6,7 @@
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 11:51:55 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/28 11:52:46 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/11/29 14:03:40 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,6 @@ int	free_array(char **array)
 	}
 	free(array);
 	return (1);
-}
-
-char	**get_cmd(char	*argv)
-{
-	return (ft_split(argv, ' '));
 }
 
 char	**get_arr_of_paths(char **env)
@@ -55,7 +50,7 @@ char	*get_path(char *argv, char **env)
 	char	**paths;
 	int		i;
 
-	cmd = get_cmd(argv);
+	cmd = ft_split(argv, ' ');
 	path = NULL;
 	paths = get_arr_of_paths(env);
 	i = 0;
