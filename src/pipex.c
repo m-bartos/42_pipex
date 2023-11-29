@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex_new.c                                        :+:      :+:    :+:   */
+/*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/27 15:02:15 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/29 14:04:14 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/11/29 14:37:26 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-int	execute(char *argv, char **env)
+void	execute(char *argv, char **env)
 {
 	char	*path;
 	char	**cmd;
@@ -24,9 +24,11 @@ int	execute(char *argv, char **env)
 		ft_putstr_fd("Command not found\n", 2);
 		exit(1);
 	}
-	execve(path, cmd, env);
-	perror("Error execve");
-	exit(1);
+	if (execve(path, cmd, env) == -1)
+	{
+		perror("Error execve");
+		exit(1);
+	}
 }
 
 void	pipe_fork(char *argv, char **env)
@@ -35,10 +37,16 @@ void	pipe_fork(char *argv, char **env)
 	int	p_id;
 
 	if (pipe(p_fd) == -1)
+	{
 		perror("Pipe error");
+		return ;
+	}
 	p_id = fork();
 	if (p_id == -1)
+	{
 		perror("Fork error");
+		return ;
+	}
 	if (p_id == 0)
 	{
 		close(p_fd[0]);
@@ -53,31 +61,7 @@ void	pipe_fork(char *argv, char **env)
 }
 
 /* COPIED CODE FROM OREZEK FOR TESTING*/
-int	ft_pip_strncmp(const char *s1, const char *s2, size_t size)
-{
-	unsigned char		start;
-	const unsigned char	*str1;
-	const unsigned char	*str2;
-
-	str1 = (const unsigned char *) s1;
-	str2 = (const unsigned char *) s2;
-	start = 0;
-	if (ft_strlen(s1) != ft_strlen(s2))
-		return (-1);
-	while (start < size)
-	{
-		if (*(str1 + start) == '\0' && *(str2 + start) == '\0')
-			break ;
-		else if (*(str1 + start) < *(str2 + start))
-			return (*(str1 + start) - *(str2 + start));
-		else if (*(str1 + start) > *(str2 + start))
-			return (*(str1 + start) - *(str2 + start));
-		start++;
-	}
-	return (0);
-}
-
-char	*ft_sanitize_line(char *str)
+char	*strip_newline(char *str)
 {
 	int		len;
 	char	*new_line;
@@ -98,29 +82,32 @@ char	*ft_sanitize_line(char *str)
 		new_line[i] = '\0';
 		return (new_line);
 	}
-	return (str);
+	return (NULL);
 }
 
 // read heredoc and save the text to a temp file
 void	ft_read_heredoc(char *limiter)
 {
 	char	*line;
-	int		heredoc_fd;
 	char	*clean_line;
+	int		heredoc_fd;
 
 	heredoc_fd = open("here_doc", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	ft_putstr_fd("heredoc> ", STDOUT_FILENO);
 	line = get_next_line(STDIN_FILENO);
-	clean_line = ft_sanitize_line(line);
-	while (ft_pip_strncmp(clean_line, limiter, ft_strlen(limiter)) != 0)
+	clean_line = strip_newline(line);
+	free(line);
+	while (ft_strncmp(clean_line, limiter, ft_strlen(limiter)) != 0 \
+		|| ft_strlen(limiter) != ft_strlen(clean_line))
 	{
 		write(heredoc_fd, line, ft_strlen(line) * sizeof(char));
 		ft_putstr_fd("heredoc> ", STDOUT_FILENO);
-		free(line);
 		free(clean_line);
 		line = get_next_line(STDIN_FILENO);
-		clean_line = ft_sanitize_line(line);
+		clean_line = strip_newline(line);
+		free(line);
 	}
+	free(clean_line);
 	close(heredoc_fd);
 }
 /* COPIED CODE FROM OREZEK FOR TESTING*/
