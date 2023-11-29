@@ -6,7 +6,7 @@
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 12:27:47 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/28 11:58:55 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/11/29 14:56:55 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,9 @@
 # include <fcntl.h>
 
 int		free_array(char **array);
-char	**get_cmd(char	*argv);
 char	**get_arr_of_paths(char **env);
 char	*get_path(char *argv, char **env);
+char	*strip_newline(char *str);
+void	ft_read_heredoc(char *limiter);
 
 #endif
