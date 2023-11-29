@@ -6,7 +6,7 @@
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/27 15:02:15 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/28 17:51:43 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/11/29 13:16:25 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,49 +173,39 @@ void	ft_read_heredoc(char *limiter)
 }
 /* COPIED CODE FROM OREZEK FOR TESTING*/
 
+void error_message(void)
+{
+	ft_putstr_fd("Error format: ./pipex file1 cmd1 .. cmdn file2\n", 2);
+	ft_putstr_fd("./pipex here_doc LIMITER cmd1 .. cmdn file2\n", 2);
+}
+
 int	main(int argc, char **argv, char **env)
 {
 	int	i;
 	int	fd_in;
 	int	fd_out;
 
-	if (argc < 4)
-	{
-		ft_putstr_fd("Error format: ./pipex file1 cmd1 .. cmdn file2\n", 2);
-		ft_putstr_fd("./pipex here_doc LIMITER cmd1 .. cmdn file2\n", 2);
-		return (1);
-	}
-	if (ft_strncmp(argv[1], "here_doc", ft_strlen("here_doc")) == 0 && argc > 5)
+	if (argc < 5)
+		return (error_message(), 1);
+	if (ft_strncmp(argv[1], "here_doc", ft_strlen("here_doc")) == 0 \
+		&& ft_strlen("here_doc") == ft_strlen(argv[1]) && argc > 5)
 	{
 		ft_read_heredoc(argv[2]);
 		fd_in = open("here_doc", O_RDONLY, 0777);
-		fd_out = open(argv[argc - 1], O_WRONLY | O_CREAT | O_APPEND, 0777);
-		if (fd_in < 0 || fd_out < 0)
-		{
-			perror("File error");
-			return (1);
-		}
-		dup2(fd_in, STDIN_FILENO);
 		i = 3;
-	}
-	else if (argc > 4)
-	{
-		fd_in = open(argv[1], O_RDONLY, 0777);
-		fd_out = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-		if (fd_in < 0 || fd_out < 0)
-		{
-			perror("File error");
-			return (1);
-		}
-		dup2(fd_in, STDIN_FILENO);
-		i = 2;
 	}
 	else
 	{
-		ft_putstr_fd("Error format: ./pipex file1 cmd1 .. cmdn file2\n", 2);
-		ft_putstr_fd("./pipex here_doc LIMITER cmd1 .. cmdn file2\n", 2);
+		fd_in = open(argv[1], O_RDONLY, 0777);
+		i = 2;
+	}
+	fd_out = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+	if (fd_in < 0 || fd_out < 0)
+	{
+		perror("File error");
 		return (1);
 	}
+	dup2(fd_in, STDIN_FILENO);
 	while (i < (argc - 2))
 	{
 		pipe_fork(argv[i], env);
