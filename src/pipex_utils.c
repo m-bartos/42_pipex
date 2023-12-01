@@ -6,7 +6,7 @@
 /*   By: mbartos <mbartos@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 11:51:55 by mbartos           #+#    #+#             */
-/*   Updated: 2023/11/29 15:09:04 by mbartos          ###   ########.fr       */
+/*   Updated: 2023/12/01 15:39:18 by mbartos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,8 @@ char	*strip_newline(char *str)
 		return (NULL);
 	len = ft_strlen(str);
 	new_line = malloc (len * sizeof(char));
+	if (!new_line)
+		return (NULL);
 	i = 0;
 	while (i < len - 1)
 	{
