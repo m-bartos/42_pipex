@@ -25,3 +25,6 @@ The purpose of this project is to discover in detail pipe UNIX mechanism by writ
 * I learned about redirections of STD_IN and STD_OUT
 * I applied various new functions, including pipe, fork, dup2, execve, perror, exit, etc.
 * I had to handle several mallocs and ensured accurate freeing of allocated memory
+
+## Thanks and kudos
+Acknowledgements to CodeVault's YouTube playlist on [Unix Processes in C](https://www.youtube.com/playlist?list=PLfqABt5AS4FkW5mOn2Tn9ZZLLDwA3kZUY) for the valuable insights.
